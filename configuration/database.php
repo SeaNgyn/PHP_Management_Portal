@@ -1,9 +1,9 @@
 <?php
-    define('DATABASE_SERVER', 'turntable.proxy.rlwy.net');
+    define('DATABASE_SERVER', 'localhost');
     define('DATABASE_USER', 'root');
-    define('DATABASE_PASSWORD', 'jOBqHOHQPNTHSnyzlwOgEgWyhYzuByML');
-    define('DATABASE_NAME', 'Php_SM');
-    define('DATABASE_PORT', '58286');
+    define('DATABASE_PASSWORD', 'Mysql18032003.');
+    define('DATABASE_NAME', 'db_sm');
+    define('DATABASE_PORT', '3307');
 
     $connection = null;
     try {

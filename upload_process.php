@@ -32,6 +32,15 @@ $columnIndexes = [
     'tiet' => ['Tiết'],
     'ngonNguGiangDay' => ['Ngôn ngữ giảng dạy'],
     'giangDuong' => ['Giảng đường'],
+    'tenGv' => ['Họ tên GV'],
+    'namSinhGv' => ['Empty'],
+    'hocViGv' => ['Họchàm/họcvị'],
+    'emailGv' => ['Empty'],
+    'sdtGv' => ['Empty'],
+    'khoaGv' => ['Khoa']
+
+
+
 ];
 
 function getCellValue($rowData, $indexResult, $key)
@@ -73,7 +82,7 @@ for ($s = 0; $s < $sheetCount; $s++) {
             break;
         }
     }
-    
+
 
     // Duyệt dữ liệu từ dòng tiếp theo
     $total = count($data);
@@ -101,11 +110,27 @@ for ($s = 0; $s < $sheetCount; $s++) {
             getCellValue($data[$i], $indexResult, "tiet"),
             getCellValue($data[$i], $indexResult, "ngonNguGiangDay"),
             getCellValue($data[$i], $indexResult, "giangDuong")
+            // getCellValue($data[$i], $indexResult, "tenGv"),
+            // getCellValue($data[$i], $indexResult, "namSinhGv"),
+            // getCellValue($data[$i], $indexResult, "hocViGv"),
+            // getCellValue($data[$i], $indexResult, "emailGv"),
+            // getCellValue($data[$i], $indexResult, "sdtGv"),
+            // getCellValue($data[$i], $indexResult, "khoaGv")
+        ];
+
+        $stringFieldsGv = [
+            getCellValue($data[$i], $indexResult, "tenGv"),
+            getCellValue($data[$i], $indexResult, "namSinhGv"),
+            getCellValue($data[$i], $indexResult, "hocViGv"),
+            getCellValue($data[$i], $indexResult, "emailGv"),
+            getCellValue($data[$i], $indexResult, "sdtGv"),
+            getCellValue($data[$i], $indexResult, "khoaGv")
         ];
 
         // Kiểm tra xem tất cả giá trị có phải đều rỗng/0 không
         $hasValidInt = array_filter($intFields, fn($v) => $v !== null && $v != 0);
         $hasValidString = array_filter($stringFields, fn($v) => $v !== null && trim($v) !== "");
+        $hasValidStringGv = array_filter($stringFieldsGv, fn($v) => $v !== null && trim($v) !== "");
 
         if (!empty($hasValidInt) || !empty($hasValidString)) {
             $values = [
@@ -123,22 +148,49 @@ for ($s = 0; $s < $sheetCount; $s++) {
                 $stringFields[8],                 // thu
                 $stringFields[9],                 // tiet
                 $stringFields[10],                // ngon_ngu_giang_day
-                $stringFields[11],                // giang_duong
+                $stringFields[11]                 // giang duong
             ];
+
+            $values1 = [
+                $stringFieldsGv[0],                // ten giang vien
+                $stringFieldsGv[1],                // nam sinh giang vien
+                $stringFieldsGv[2],                // hoc vi giang vien
+                $stringFieldsGv[3],                // email giang vien
+                $stringFieldsGv[4],                // sdt giang vien
+                $stringFieldsGv[5]                 // khoa cua giang vien
+            ];
+        
             if ($connection !== null) {
                 $stmt = $connection->prepare("INSERT INTO monhoc (
                 STT, ma_hp, ten_hp, so_tin_chi, ma_lop_hp, phan_bo_tin_chi,
                 loai_lop, nganh, khoa, chuong_trinh_dao_tao, so_luong_sv,
                 thu, tiet, ngon_ngu_giang_day, giang_duong
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
                 $stmt->execute($values);
+                $lastMonhocId = $connection->lastInsertId(); // lấy id môn học vừa thêm
+
+                if (!empty($values1[0])) {
+                    $stmt1 = $connection->prepare("INSERT INTO giangvien (
+                    ten, nam_sinh, hoc_vi, email, sdt, khoa
+                    ) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt2 = $connection->prepare("INSERT INTO giangvien_monhoc (
+                    id_giangvien, id_monhoc
+                    ) VALUES (?, ?)");
+
+                    $stmt1->execute($values1);
+
+                    $lastGiangvienId = $connection->lastInsertId(); // lấy id giảng viên vừa thêm
+                    
+                    $stmt2->execute([$lastGiangvienId, $lastMonhocId]);// Insert vào bảng trung gian
+                }
+
                 $inserted++;
             }
         }
     }
 }
- 
+
 
 
 
