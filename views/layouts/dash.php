@@ -1,7 +1,10 @@
 <?php
 include '../../configuration/database.php';
 try {
-    $sql = "SELECT * from monhoc;";
+    $sql = "SELECT * from giang_vien gv 
+        join giangvien_malophp gvmlhp on gv.id = gvmlhp.giang_vien_id 
+        join ma_lop_hp mlhp on mlhp.id = gvmlhp.id_ma_lop_hp 
+        join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 19;";
     if ($connection === null) {
         throw new Exception("Database connection is not established.");
     }
@@ -10,6 +13,12 @@ try {
     $statement->execute();
     $statement->setFetchMode(PDO::FETCH_ASSOC);
     $monhocs = $statement->fetchAll();
+
+    $sql = "SELECT * FROM giang_vien WHERE id = 19";
+    $statement = $connection->prepare($sql);
+    $statement->execute();
+    $gv = $statement->fetch(PDO::FETCH_ASSOC);
+    $tenGiangVien = $gv['Name'] ?? 'Không tìm thấy';
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
@@ -17,7 +26,7 @@ try {
 <!-- Danh sách môn học -->
 <div class="panel panel-primary " style="margin-top: 20px; height: auto; ">
     <div class="panel-heading" style="height: auto; font-size: 20px; font-family: Helvetica; color: white;background-color:blue">Danh sách môn học được phân
-        công</div>
+        công của <?php echo $tenGiangVien ?>:</div>
     <div class="panel-body" style="height: auto;">
         <table class="table table-striped" id="courseTable">
             <thead>
@@ -42,10 +51,10 @@ try {
                 <?php
                 foreach ($monhocs as $monhoc) {
                     $STT = $monhoc['STT'] ?? '';
-                    $maHp = $monhoc['ma_hp'] ?? '';
-                    $tenHp = $monhoc['ten_hp'] ?? '';
+                    $maHp = $monhoc['ma_mon'] ?? '';
+                    $tenHp = $monhoc['ten_mon'] ?? '';
                     $soTc = $monhoc['so_tin_chi'] ?? '';
-                    $maLopHp = $monhoc['ma_lop_hp'] ?? '';
+                    $maLopHp = $monhoc['ten_ma_lop_hp'] ?? '';
                     $phanBoTc = $monhoc['phan_bo_tin_chi'] ?? '';
                     $loaiLop = $monhoc['loai_lop'] ?? '';
                     $nganh = $monhoc['nganh'] ?? '';

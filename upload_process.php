@@ -178,14 +178,21 @@ for ($s = 0; $s < $sheetCount; $s++) {
                     $lastMonhocId = $connection->lastInsertId();
                 }
 
-                $stmt = $connection->prepare("INSERT INTO ma_lop_hp (
+                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ?");
+                $stmtCheckMLHP->execute([$values[1]]);  // ma_lop_hp
+                $maLopHpCk = $stmtCheckMLHP->fetch(PDO::FETCH_ASSOC);
+                if ($maLopHpCk) {
+                    continue;
+                } else {
+                    $stmt = $connection->prepare("INSERT INTO ma_lop_hp (
                         STT, ten_ma_lop_hp, phan_bo_tin_chi,
                         loai_lop, nganh, khoa, chuong_trinh_dao_tao, so_luong_sv,
                         thu, tiet, ngon_ngu_giang_day, giang_duong, id_mon_hoc
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-                $stmt->execute([...$values, $lastMonhocId]);
-                $lastMaLopHocPhanId = $connection->lastInsertId();
+                    $stmt->execute([...$values, $lastMonhocId]);
+                    $lastMaLopHocPhanId = $connection->lastInsertId();
+                }
 
                 if (!empty($values1[0])) {
                     $giangVienArray = preg_split('/\r\n|\r|\n/', $stringFieldsGv[0]);
@@ -216,7 +223,7 @@ for ($s = 0; $s < $sheetCount; $s++) {
                             $stmt4 = $connection->prepare("INSERT INTO giangvien_malophp (
                                 giang_vien_id, id_ma_lop_hp
                                 ) VALUES (?, ?)");
-                                $stmt4->execute([$lastGiangvienId, $lastMaLopHocPhanId]);
+                            $stmt4->execute([$lastGiangvienId, $lastMaLopHocPhanId]);
                         }
                     }
                 }
@@ -226,8 +233,10 @@ for ($s = 0; $s < $sheetCount; $s++) {
     }
 }
 
-
-
-
-echo "<h3>Đã xử lý thành công $inserted dòng từ tất cả các sheet.</h3>";
-echo '<a href="monhoc_list.php">Chuyển đến danh sách</a>';
+if ($inserted != 0) {
+    echo "<h3>Đã xử lý thành công $inserted dòng từ tất cả các sheet.</h3>";
+    echo '<a href="monhoc_list.php">Chuyển đến danh sách</a>';
+} else {
+    echo "<h3>Đã xử lý thành công $inserted dòng từ tất cả các sheet.</h3>";
+    echo '<h4 style="color: red;">Dữ liệu file đã tồn tại trong CSDL</h4>';
+}
