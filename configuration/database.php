@@ -3,8 +3,8 @@
 define('DATABASE_SERVER', 'localhost');          // Địa chỉ host của MySQL (localhost hoặc IP)
 define('DATABASE_USER', 'root');                 // Tên người dùng MySQL
 define('DATABASE_PASSWORD', 'Mysql18032003.');   // Mật khẩu MySQL
-define('DATABASE_NAME', 'db_sm');                // Tên cơ sở dữ liệu cần kết nối
-define('DATABASE_PORT', '3307');                 // Cổng MySQL đang lắng nghe (mặc định là 3307)
+define('DATABASE_NAME', 'db_php_ver3');                // Tên cơ sở dữ liệu cần kết nối
+define('DATABASE_PORT', '3306');                 // Cổng MySQL đang lắng nghe (mặc định là 3306)
 
 
 $connection = null;

@@ -38,9 +38,6 @@ $columnIndexes = [
     'emailGv' => ['Empty'],
     'sdtGv' => ['Empty'],
     'khoaGv' => ['Khoa']
-
-
-
 ];
 
 function getCellValue($rowData, $indexResult, $key)
@@ -135,9 +132,6 @@ for ($s = 0; $s < $sheetCount; $s++) {
         if (!empty($hasValidInt) || !empty($hasValidString)) {
             $values = [
                 $intFields[0],                    // STT
-                $stringFields[0],                 // ma_hp
-                $stringFields[1],                 // ten_hp
-                $intFields[1],                    // so_tin_chi
                 $stringFields[2],                 // ma_lop_hp
                 $stringFields[3],                 // phan_bo_tin_chi
                 $stringFields[4],                 // loai_lop
@@ -151,6 +145,12 @@ for ($s = 0; $s < $sheetCount; $s++) {
                 $stringFields[11]                 // giang duong
             ];
 
+            $values3 = [
+                $stringFields[1],                 // ten_hp
+                $stringFields[0],                 // ma_hp
+                $intFields[1],                    // so_tin_chi
+            ];
+
             $values1 = [
                 $stringFieldsGv[0],                // ten giang vien
                 $stringFieldsGv[1],                // nam sinh giang vien
@@ -159,32 +159,67 @@ for ($s = 0; $s < $sheetCount; $s++) {
                 $stringFieldsGv[4],                // sdt giang vien
                 $stringFieldsGv[5]                 // khoa cua giang vien
             ];
-        
+
             if ($connection !== null) {
-                $stmt = $connection->prepare("INSERT INTO monhoc (
-                STT, ma_hp, ten_hp, so_tin_chi, ma_lop_hp, phan_bo_tin_chi,
-                loai_lop, nganh, khoa, chuong_trinh_dao_tao, so_luong_sv,
-                thu, tiet, ngon_ngu_giang_day, giang_duong
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                // Kiểm tra xem môn học đã tồn tại chưa
+                $stmtCheck = $connection->prepare("SELECT id FROM mon_hoc WHERE ma_mon = ?");
+                $stmtCheck->execute([$values3[1]]);  // ma_mon
+                $monHoc = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-                $stmt->execute($values);
-                $lastMonhocId = $connection->lastInsertId(); // lấy id môn học vừa thêm
-
-                if (!empty($values1[0])) {
-                    $stmt1 = $connection->prepare("INSERT INTO giangvien (
-                    ten, nam_sinh, hoc_vi, email, sdt, khoa
-                    ) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt2 = $connection->prepare("INSERT INTO giangvien_monhoc (
-                    id_giangvien, id_monhoc
-                    ) VALUES (?, ?)");
-
-                    $stmt1->execute($values1);
-
-                    $lastGiangvienId = $connection->lastInsertId(); // lấy id giảng viên vừa thêm
-                    
-                    $stmt2->execute([$lastGiangvienId, $lastMonhocId]);// Insert vào bảng trung gian
+                if ($monHoc) {
+                    // Nếu đã tồn tại thì lấy ID
+                    $lastMonhocId = $monHoc['id'];
+                } else {
+                    // Nếu chưa có thì insert mới
+                    $stmt3 = $connection->prepare("INSERT INTO mon_hoc (
+                    ten_mon, ma_mon, so_tin_chi
+                    ) VALUES (?, ?, ?)");
+                    $stmt3->execute($values3);
+                    $lastMonhocId = $connection->lastInsertId();
                 }
 
+                $stmt = $connection->prepare("INSERT INTO ma_lop_hp (
+                        STT, ten_ma_lop_hp, phan_bo_tin_chi,
+                        loai_lop, nganh, khoa, chuong_trinh_dao_tao, so_luong_sv,
+                        thu, tiet, ngon_ngu_giang_day, giang_duong, id_mon_hoc
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+                $stmt->execute([...$values, $lastMonhocId]);
+                $lastMaLopHocPhanId = $connection->lastInsertId();
+
+                if (!empty($values1[0])) {
+                    $giangVienArray = preg_split('/\r\n|\r|\n/', $stringFieldsGv[0]);
+                    foreach ($giangVienArray as $gvName) {
+                        $gvName = trim($gvName);
+                        if ($gvName === '') continue;
+                        // Kiểm tra giảng viên có tồn tại chưa
+                        $stmtCheckGv = $connection->prepare("SELECT id FROM giang_vien WHERE Name = ?");
+                        $stmtCheckGv->execute([$gvName]);
+                        $gv = $stmtCheckGv->fetch(PDO::FETCH_ASSOC);
+                        $lastGiangvienId = $gv ? $gv['id'] : null;
+
+                        if (!empty($lastGiangvienId)) {
+                            // Kiểm tra cặp giảng_vien_id và id_mon_hoc đã tồn tại chưa
+                            $stmtCheckGV_MH = $connection->prepare("
+                            SELECT 1 FROM giangvien_monhoc 
+                            WHERE giang_vien_id = ? AND id_mon_hoc = ?
+                            ");
+                            $stmtCheckGV_MH->execute([$lastGiangvienId, $lastMonhocId]);
+
+                            if (!$stmtCheckGV_MH->fetch()) {
+                                // Chưa tồn tại => chèn mới
+                                $stmt2 = $connection->prepare("INSERT INTO giangvien_monhoc (
+                                giang_vien_id, id_mon_hoc
+                                ) VALUES (?, ?)");
+                                $stmt2->execute([$lastGiangvienId, $lastMonhocId]);
+                            }
+                            $stmt4 = $connection->prepare("INSERT INTO giangvien_malophp (
+                                giang_vien_id, id_ma_lop_hp
+                                ) VALUES (?, ?)");
+                                $stmt4->execute([$lastGiangvienId, $lastMaLopHocPhanId]);
+                        }
+                    }
+                }
                 $inserted++;
             }
         }

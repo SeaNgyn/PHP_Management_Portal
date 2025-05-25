@@ -1,7 +1,7 @@
 <?php
 include './configuration/database.php';
 try {
-    $sql = "SELECT * from Php_SM.monhoc;";
+    $sql = "SELECT * from mon_hoc;";
     if ($connection === null) {
         throw new Exception("Database connection is not established.");
     }
