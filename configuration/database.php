@@ -2,9 +2,9 @@
 // Định nghĩa các hằng số cấu hình kết nối
 define('DATABASE_SERVER', 'localhost');          // Địa chỉ host của MySQL (localhost hoặc IP)
 define('DATABASE_USER', 'root');                 // Tên người dùng MySQL
-define('DATABASE_PASSWORD', 'Mysql18032003.');   // Mật khẩu MySQL
+define('DATABASE_PASSWORD', 'Ngantrang1603');   // Mật khẩu MySQL
 define('DATABASE_NAME', 'db_php_ver3');                // Tên cơ sở dữ liệu cần kết nối
-define('DATABASE_PORT', '3306');                 // Cổng MySQL đang lắng nghe (mặc định là 3306)
+define('DATABASE_PORT', '3306');                 // Cổng MySQL đang lắng nghe (mặc định là 3307)
 
 
 $connection = null;
@@ -21,7 +21,7 @@ try {
     //PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION Đây là một hằng số static (const) của lớp PDO. Và vì nó là static, bạn dùng :: để truy cập
     //$connection->setAttribute() $connection là object → dùng '->' setAttribute(...) là phương thức của object này
 
-    echo "Connected successfully";
+    // echo "Connected successfully";
 } catch (PDOException $e) {
     // Bắt lỗi nếu kết nối thất bại và hiển thị thông báo lỗi
     echo "Connection failed: " . $e->getMessage();

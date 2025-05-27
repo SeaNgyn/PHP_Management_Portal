@@ -269,3 +269,27 @@ th, td {
   pointer-events: none;
   border-color: #ddd;
 }
+
+.profile-img {
+  width: 150px;
+  height: 180px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+legend {
+  font-size: 18px;
+  font-weight: bold;
+  width: auto;
+  padding: 0 10px;
+}
+.form-group{
+  height: 50px;
+  
+}
