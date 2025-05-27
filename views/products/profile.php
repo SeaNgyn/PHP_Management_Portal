@@ -2,7 +2,7 @@
 <?php
 include '../../configuration/database.php';
 try {
-    $sql = "SELECT * from mon_hoc;";
+    $sql = "SELECT * FROM mon_hoc;";
     if ($connection === null) {
         throw new Exception("Database connection is not established.");
     }
@@ -21,69 +21,107 @@ try {
     </div>
     <div class="col-sm-10 content" style="background-color:rgb(252, 252, 252);padding:0">
         <div id="modTitle" class="module-title" style="height:25px; ;">Hồ sơ</div>
-        <div class="row row4" style="margin-left:0; width:100%">
-            <!-- <table class="tabbox" style=" border:0 ;align:center;" width="100%" cellspacing="0" cellpadding="8" ></table> -->
-            <div class="col-sm-8">
-                <form class="form-horizontal">
-                    <fieldset>
-                        <legend><strong style="font-size: 15px;">Thông tin cá nhân</strong></legend>
+        <div class="container">
+            <form class="form-horizontal">
+                <fieldset>
+                    <legend>Thông tin cá nhân</legend>
+                    <!-- Ảnh bên trái -->
+                    <div class="col-sm-4 text-center" style="width: 300px;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Ảnh cá nhân"
+                            class="img-thumbnail profile-img">
+                        <br>
+                        <!-- Input ẩn để chọn ảnh -->
+                        <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
-                        <div class="form-group">
-                            <div class="col-sm-4 text-center">
-                                <img id="piccy" class="img-thumbnail"
-                                    src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                                    alt="Ảnh" height="130">
-                                <br>
-                                <a href="#">Cập nhật ảnh</a>
-                            </div>
-                            <div class="col-sm-8">
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Mã sinh viên</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="21000772" disabled>
-                                    </div>
-                                </div>
+                        <!-- Link để kích hoạt input file -->
+                        <a href="#" onclick="document.getElementById('imageUpload').click(); return false;">Cập nhật
+                            ảnh</a>
+                    </div>
 
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Họ và tên</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="Nguyễn Thị Trang Ngân" disabled>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Ngày sinh</label>
-                                    <div class="col-sm-3">
-                                        <input type="text" class="form-control" value="01/06/2003" disabled>
-                                    </div>
-                                    <label class="col-sm-2 control-label">Giới tính</label>
-                                    <div class="col-sm-3">
-                                        <select class="form-control">
-                                            <option value="">-- Chọn --</option>
-                                            <option value="0">Nam</option>
-                                            <option value="1" selected>Nữ</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Email ĐHQGHN</label>
-                                    <div class="col-sm-8">
-                                        <input type="email" class="form-control" value="21000772@vnu.edu.vn">
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Email khác</label>
-                                    <div class="col-sm-8">
-                                        <input type="email" class="form-control" value="ngantrang0316@gmail.com">
-                                    </div>
-                                </div>
+                    <!-- Thông tin bên phải -->
+                    <div class="col-sm-8" style="width: 600px;margin-left:-25px">
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Mã giảng viên</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="" disabled>
                             </div>
                         </div>
-                    </fieldset>
-                </form>
-            </div>
+
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Họ và tên</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Ngày sinh</label>
+                            <div class="col-sm-4">
+                                <input type="date" class="form-control" value="">
+                            </div>
+
+                            <label class="col-sm-2 control-label">Giới tính</label>
+                            <div class="col-sm-3">
+                                <select class="form-control">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="0">Nam</option>
+                                    <option value="1" selected>Nữ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Quê quán </label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" value="21000772@vnu.edu.vn">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Email</label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" value="ngantrang0316@gmail.com">
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+                <fieldset>
+                    <legend>Thông tin cơ bản</legend>
+                    <!-- Ảnh bên trái -->
+                
+                    <!-- Thông tin bên phải -->
+                    <div class="col-sm-8" style="width: 600px;margin-left:-25px">
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Học hàm</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Học vị</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: auto">
+                            <label class="col-sm-3 control-label">Bộ môn </label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" value="21000772@vnu.edu.vn">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Chức vụ</label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" value="ngantrang0316@gmail.com">
+                            </div>
+                        </div>
+                    </div>
+
+                </fieldset>
+            </form>
         </div>
+
     </div>
+</div>
 </div>

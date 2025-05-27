@@ -27,7 +27,7 @@ $columnIndexes = [
     'nganh' => ['Ngành'],
     'khoa' => ['Khoa'],
     'chuongTrinhDt' => ['CTĐT'],
-    'soLuongSv' => ['Số SV đang học', 'Số ĐK'],
+    'soLuongSv' => ['Số SV đang học', 'Số ĐK','Số SV đăng ký'],
     'thu' => ['Thứ'],
     'tiet' => ['Tiết'],
     'ngonNguGiangDay' => ['Ngôn ngữ giảng dạy'],
@@ -53,7 +53,27 @@ function getCellValue($rowData, $indexResult, $key)
     }
     return $val;
 }
+function tachTenGV($chuoi) {
+   // 1. Loại bỏ phần trong dấu ngoặc như (PV), (GV), (HĐ),...
+   $chuoi = preg_replace('/\s*\(.*?\)\s*/', '', $chuoi);
 
+   // 2. Chuẩn hóa chuỗi: loại bỏ khoảng trắng đầu-cuối, xuống dòng, dấu phẩy, chấm phẩy, dấu +
+   $chuoi = trim($chuoi);
+   $chuoi = preg_replace('/[\r\n,;+]+/', '|', $chuoi);
+   $chuoi = preg_replace('/\s*\|\s*/', '|', $chuoi); // xóa khoảng trắng quanh dấu phân cách
+
+   // 3. Tách thành mảng
+   $tenArr = explode('|', $chuoi);
+
+   // 4. Loại bỏ khoảng trắng thừa và phần tử rỗng
+   $tenArr = array_filter(array_map('trim', $tenArr));
+
+   // 5. Loại bỏ tên trùng
+   $tenArr = array_unique($tenArr);
+
+   return array_values($tenArr); // Đảm bảo trả về mảng tuần tự
+
+}
 $inserted = 0;
 for ($s = 0; $s < $sheetCount; $s++) {
     $sheet = $spreadsheet->getSheet($s);
@@ -178,8 +198,8 @@ for ($s = 0; $s < $sheetCount; $s++) {
                     $lastMonhocId = $connection->lastInsertId();
                 }
 
-                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ?");
-                $stmtCheckMLHP->execute([$values[1]]);  // ma_lop_hp
+                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ?AND loai_lop=?");
+                $stmtCheckMLHP->execute([$values[1],$values[3]]);  // ma_lop_hp
                 $maLopHpCk = $stmtCheckMLHP->fetch(PDO::FETCH_ASSOC);
                 if ($maLopHpCk) {
                     continue;
@@ -195,7 +215,9 @@ for ($s = 0; $s < $sheetCount; $s++) {
                 }
 
                 if (!empty($values1[0])) {
-                    $giangVienArray = preg_split('/\r\n|\r|\n/', $stringFieldsGv[0]);
+
+                    $giangVienArray = tachTenGV($stringFieldsGv[0]);
+                    // $giangVienArray = preg_split('/\r\n|\r|\n/', $stringFieldsGv[0]);
                     foreach ($giangVienArray as $gvName) {
                         $gvName = trim($gvName);
                         if ($gvName === '') continue;
