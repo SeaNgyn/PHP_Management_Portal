@@ -27,7 +27,7 @@ $columnIndexes = [
     'nganh' => ['Ngành'],
     'khoa' => ['Khoa'],
     'chuongTrinhDt' => ['CTĐT'],
-    'soLuongSv' => ['Số SV đang học', 'Số ĐK','Số SV đăng ký'],
+    'soLuongSv' => ['Số SV đang học', 'Số ĐK', 'Số SV đăng ký'],
     'thu' => ['Thứ'],
     'tiet' => ['Tiết'],
     'ngonNguGiangDay' => ['Ngôn ngữ giảng dạy'],
@@ -198,8 +198,9 @@ for ($s = 0; $s < $sheetCount; $s++) {
                     $lastMonhocId = $connection->lastInsertId();
                 }
 
-                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ?AND loai_lop=?");
-                $stmtCheckMLHP->execute([$values[1],$values[3]]);  // ma_lop_hp
+                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ? AND loai_lop = ?");
+                $stmtCheckMLHP->execute([$values[1], $values[3]]);  // ma_lop_hp
+
                 $maLopHpCk = $stmtCheckMLHP->fetch(PDO::FETCH_ASSOC);
                 if ($maLopHpCk) {
                     continue;
