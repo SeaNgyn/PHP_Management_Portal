@@ -39,10 +39,11 @@
             <div class="container-fluid col-sm-5 right-header" style="background-color:rgb(226, 235, 237);padding:0;">
                 <div class="row row3">
                         <div class=" col-sm-9 headerWelcome">
-                            Xin chào bạn:
+                            Xin chào bạn
                             <br>
                             <br>
-                            Chọn học kỳ:
+                            Chọn học kỳ
+                            <br>
                             <select id="cboTerm" name="cboTerm"
                                 style="background-color:#b8c4e3;padding:0px 5px;width:190px;clear:both">
                                 <option value="242;2;2024-2025">
