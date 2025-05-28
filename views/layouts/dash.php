@@ -1,12 +1,24 @@
 <?php
 include '../../configuration/database.php';
+if (isset($_GET['trang'])){
+    $page = $_GET['trang'];
+}else{
+    $page = '';
+}
+
+if($page ==''|| $page ==1){
+    $begin = 0;
+}else{
+    $begin = ($page*10)-10;
+}
 try {
+    
     $sql = "SELECT * from giang_vien gv 
         join giangvien_malophp gvmlhp on gv.id = gvmlhp.giang_vien_id 
         join ma_lop_hp mlhp on mlhp.id = gvmlhp.id_ma_lop_hp 
-        join mon_hoc mh on mlhp.id_mon_hoc = mh.id 
+        join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 68
+        LIMIT $begin,10;
         -- where gvmlhp.giang_vien_id = 19
-        ;
 --     SELECT *
 -- FROM ma_lop_hp ml
 -- JOIN mon_hoc mh ON ml.id_mon_hoc = mh.id
@@ -21,7 +33,7 @@ try {
     $statement->setFetchMode(PDO::FETCH_ASSOC);
     $monhocs = $statement->fetchAll();
 
-    $sql = "SELECT * FROM giang_vien WHERE id = 29;";
+    $sql = "SELECT * FROM giang_vien WHERE id = 29 ";
     $count = "SELECT 
     mlhp.ten_ma_lop_hp, 
     COUNT(gvmlhp.giang_vien_id) AS so_giang_vien
@@ -59,29 +71,29 @@ foreach($results as $row){
         style="height: auto; font-size: 20px; font-family: Helvetica; color: white;background-color:blue">Danh sách môn
         học được phân
         công <?php echo $tenGiangVien ?>: </div>
-        <div class="panel-body" style="height: auto;">
-            <table class="table table-striped" id="courseTable">
-                <thead>
-                    <tr style="background-color: #f5f5f5; color: 000;">
-                        <th>STT</th>
-                        <th>Mã học phần</th>
-                        <th>Tên học phần</th>
-                        <th>Số tín chỉ</th>
-                        <th>Mã lớp học phần</th>
-                        <th>Phân bố tín chỉ</th>
-                        <th>Loại lớp</th>
-                        <th>Khoa</th>
-                        <th>Thứ</th>
-                        <th>Tiết</th>
-                        <th>Số lượng sinh viên</th>
-                        <th>Giảng đường</th>
-                        <th>Ngôn ngữ giảng dạy</th>
-                        <th>Thời gian dạy</th>
-                        <!-- <th>Giảng viên</th> -->
-                    </tr>
-                </thead>
-                <tbody style="color: #4f535a;">
-                    <?php
+    <div class="panel-body" style="height: auto;">
+        <table class="table table-striped" id="courseTable">
+            <thead>
+                <tr style="background-color: #f5f5f5; color: 000;">
+                    <th>STT</th>
+                    <th>Mã học phần</th>
+                    <th>Tên học phần</th>
+                    <th>Số tín chỉ</th>
+                    <th>Mã lớp học phần</th>
+                    <th>Phân bố tín chỉ</th>
+                    <th>Loại lớp</th>
+                    <th>Khoa</th>
+                    <th>Thứ</th>
+                    <th>Tiết</th>
+                    <th>Số lượng sinh viên</th>
+                    <th>Giảng đường</th>
+                    <th>Ngôn ngữ giảng dạy</th>
+                    <th>Thời gian dạy</th>
+                    <!-- <th>Giảng viên</th> -->
+                </tr>
+            </thead>
+            <tbody style="color: #4f535a;">
+                <?php
                     foreach ($monhocs as $monhoc) {
                         $STT = $monhoc['STT'] ?? '';
                         $maHp = $monhoc['ma_mon'] ?? '';
@@ -124,14 +136,14 @@ foreach($results as $row){
                     }
                     //echo '<a href="index.php">Click here to back Home to upload file</a>';
                     ?>
-                    <!-- Các dòng dữ liệu khác có thể thêm vào đây -->
-                </tbody>
-            </table>
-        </div>
-
+                <!-- Các dòng dữ liệu khác có thể thêm vào đây -->
+            </tbody>
+        </table>
     </div>
 
-    <?php
+</div>
+
+<?php
 
    
     function Ks($soLuongSv, $loaiLop,$maLopHp)
@@ -255,8 +267,8 @@ foreach($results as $row){
 
     }
     ?>
-    <!-- Biểu đồ -->
-    <!-- <div class="row">
+<!-- Biểu đồ -->
+<!-- <div class="row">
     <div class="col-sm-12">
         <canvas id="teachingChart" style="width: 100%; height: 400px; "></canvas>
     </div>
