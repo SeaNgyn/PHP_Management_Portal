@@ -1,31 +1,67 @@
 <?php include '../layouts/header.php'; ?>
 <?php
+   $limit = 15;
 include '../../configuration/database.php';
+if (isset($_GET['trang'])){
+    $page = $_GET['trang'];
+}else{
+    $page = '';
+}
+
+if($page ==''|| $page ==1){
+    $begin = 0;
+}else{
+    $begin = ($page*10)-10;
+}
+$totalRows = 0;
+$monhocs = [];
+
 try {
-    $sql = "SELECT * from mon_hoc;";
-    if ($connection === null) {
-        throw new Exception("Database connection is not established.");
+    
+    if (isset($_GET['search']) && !empty($_GET['search'])) {
+        $searchKey = $_GET['search'];
+        $sql = "SELECT * FROM mon_hoc WHERE ten_mon LIKE :keyword OR ma_mon LIKE :keyword";
+        $statement = $connection->prepare($sql);
+        $statement->execute([':keyword' => '%' . $searchKey . '%']);
+        $totalRows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        //phan trang 
+           
+           $sql = "SELECT * FROM mon_hoc WHERE ten_mon LIKE :keyword OR ma_mon LIKE :keyword LIMIT $begin, $limit";
+           $statement = $connection->prepare($sql);
+           $statement->execute([':keyword' => '%' . $searchKey . '%']);
+           $monhocs = $statement->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // Nếu không tìm kiếm, lấy tất cả môn học
+        $sql = "SELECT * FROM mon_hoc";
+        $statement = $connection->prepare($sql);
+        $statement->execute();
+        $totalRows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        //phan trang
+        $sql = "SELECT * FROM mon_hoc LIMIT $begin, $limit";
+        $statement = $connection->prepare($sql);
+        $statement->execute();
+        $monhocs = $statement->fetchAll(PDO::FETCH_ASSOC);
     }
-    $statement = $connection->prepare($sql);
-    $statement->execute();
-    $statement->setFetchMode(PDO::FETCH_ASSOC);
-    $monhocs = $statement->fetchAll();
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
+    echo "Lỗi truy vấn: " . $e->getMessage();
 }
 ?>
+
+
 <div id="divMain" class="row row2">
     <div class="col-sm-2 sidebar" style="background-color:#2e43d1;padding-right: 0">
         <?php include '../layouts/sidebar.php'; ?>
     </div>
     <div class="col-sm-10 content" style="background-color:rgb(252, 252, 252);">
         <div id="modTitle" class="module-title" style="height:25px;margin-left:-15px;">Tìm kiếm</div>
-
         <div class="search-container" style="height: 5% ; margin-bottom: 50px;">
-            <input type="text" id="searchCode" placeholder="Tìm kiếm...">
-            <button onclick="searchCourse()" class="search-button" style="background-color: #2e43d1;">Tìm kiếm</button>
+            <form method="get" action="">
+                <input type="text" id="searchCode" name="search" placeholder="Nhập từ khóa..."
+                    value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>">
+                <input type="submit" class="search-button" value="Tìm kiếm" style="background-color: #2e43d2;">
+            </form>
         </div>
-        <!-- Gắn Bootstrap 3 nếu chưa có -->
 
 
         <div class="container" style="background-color: #fcf9f9; padding: 20px;">
@@ -56,40 +92,46 @@ try {
                                 </tr>
                             </thead>
                             <tbody style="color: #4f535a;">
-                                <?php
-                                foreach ($monhocs as $monhoc) {
-                                    $maHp = $monhoc['ma_mon'] ?? '';
-                                    $tenHp = $monhoc['ten_mon'] ?? '';
-                                    $soTc = $monhoc['so_tin_chi'] ?? '';
-
-                                    echo '<tr>';
-                                    // echo "<td>$STT</td>";
-                                    echo "<td>$maHp</td>";
-                                    echo "<td>$tenHp</td>";
-                                    echo "<td>$soTc</td>";
-                                    // echo "<td>$maLopHp</td>";
-                                    // echo "<td>$phanBoTc</td>";
-                                    // echo "<td>$loaiLop</td>";
-                                    // echo "<td>$nganh</td>";
-                                    // echo "<td>$khoa</td>";
-                                    // echo "<td>$chuongTrinhDt</td>";
-                                    // echo "<td>$soLuongSv</td>";
-                                    // echo "<td>$thu</td>";
-                                    // echo "<td>$tiet</td>";
-                                    // echo "<td>$ngonNguGiangDay</td>";
-                                    // echo "<td>$giangDuong</td>";
-                                    echo '<td><a href="">Xem chi tiết</a></td>';
-                                    echo '</tr>';
-                                }
-                                ?>
-                                <!-- Các dòng dữ liệu khác có thể thêm vào đây -->
+                                <?php if (empty($monhocs)): ?>
+                                <tr>
+                                    <td colspan="4" class="text-center">Không có kết quả.</td>
+                                </tr>
+                                <?php else: ?>
+                                <?php foreach ($monhocs as $monhoc){ ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($monhoc['ma_mon']) ?></td>
+                                    <td><?= htmlspecialchars($monhoc['ten_mon']) ?></td>
+                                    <td><?= htmlspecialchars($monhoc['so_tin_chi']) ?></td>
+                                    <td><a href="detail.php">Xem chi tiết</a></td>
+                                </tr>
+                                <?php }?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <p id="result"></p>
+
                 </div>
             </div>
         </div>
+        <!-- PHÂN TRANG -->
+        <div style="text-align: center;">
+            <?php
+            $trang = ceil(count($totalRows) / $limit);
+            if ($trang > 1):
+                ?>
+            <ul class="pagination">
+                <?php for ($i = 1; $i <= $trang; $i++){?>
+                <li <?= ($i == $page) ? 'class="active"' : '' ?>>
+                    <a
+                        href="search.php?trang=<?= $i ?><?= isset($searchKey) ? '&search=' . urlencode($searchKey) : '' ?>">
+                        <?= $i ?>
+                    </a>
+                </li>
+                <?php } ?>
+            </ul>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
-<script src="../../js/search.js"></script>
+</div>
+</div>
