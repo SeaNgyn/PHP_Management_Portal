@@ -17,7 +17,9 @@ $totalRows = 0;
 $monhocs = [];
 
 try {
-    
+    if ($connection === null) {
+        throw new Exception("Database connection is not established.");
+    }
     if (isset($_GET['search']) && !empty($_GET['search'])) {
         $searchKey = $_GET['search'];
         $sql = "SELECT * FROM mon_hoc WHERE ten_mon LIKE :keyword OR ma_mon LIKE :keyword";
