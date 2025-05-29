@@ -11,7 +11,7 @@ if (isset($_GET['trang'])){
 if($page ==''|| $page ==1){
     $begin = 0;
 }else{
-    $begin = ($page*10)-10;
+    $begin = ($page*$limit)-$limit;
 }
 $totalRows = 0;
 $monhocs = [];
@@ -102,7 +102,7 @@ try {
                                     <td><?= htmlspecialchars($monhoc['ma_mon']) ?></td>
                                     <td><?= htmlspecialchars($monhoc['ten_mon']) ?></td>
                                     <td><?= htmlspecialchars($monhoc['so_tin_chi']) ?></td>
-                                    <td><a href="detail.php">Xem chi tiết</a></td>
+                                    <td><a href="detail.php?id=<?=$monhoc['id'] ?>">Xem chi tiết</a></td>
                                 </tr>
                                 <?php }?>
                                 <?php endif; ?>

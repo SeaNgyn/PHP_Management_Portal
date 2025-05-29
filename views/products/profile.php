@@ -2,27 +2,31 @@
 <?php
 include '../../configuration/database.php';
 try {
-    $sql = "SELECT * FROM mon_hoc;";
-    if ($connection === null) {
-        throw new Exception("Database connection is not established.");
-    }
+    $sql = "SELECT * FROM giang_vien WHERE id = 1 ";
+    // if ($connection === null) {
+    //     throw new Exception("Database connection is not established.");
+    // }
     $statement = $connection->prepare($sql);
     $statement->execute();
     $statement->setFetchMode(PDO::FETCH_ASSOC);
-    $monhocs = $statement->fetchAll();
+    $profile = $statement->fetch(PDO::FETCH_ASSOC); // Lấy 1 dòng duy nhất
+
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
+// echo json_encode($profile);
 ?>
 
 <div id="divMain" class="row row2">
     <div class="col-sm-2 sidebar" style="background-color:#2e43d1;padding-right: 0">
         <?php include '../layouts/sidebar.php'; ?>
     </div>
+ 
+
     <div class="col-sm-10 content" style="background-color:rgb(252, 252, 252);padding:0">
         <div id="modTitle" class="module-title" style="height:25px; ;">Hồ sơ</div>
         <div class="container">
-            <form class="form-horizontal">
+            <form class="form-horizontal" action="" method="post">
                 <fieldset>
                     <legend>Thông tin cá nhân</legend>
                     <!-- Ảnh bên trái -->
@@ -43,29 +47,30 @@ try {
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Mã giảng viên</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="" disabled>
+                            <input type="text" class="form-control" name="id" value="<?= htmlspecialchars($profile['id'] ?? '') ?>" readonly>
+
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Họ và tên</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="">
+                                <input type="text" class="form-control" name ="Name" value="<?= htmlspecialchars($profile['Name'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Ngày sinh</label>
                             <div class="col-sm-4">
-                                <input type="date" class="form-control" value="">
+                                <input type="date" class="form-control" name =""DOB value="<?= htmlspecialchars($profile['DOB'] ?? '') ?>">
                             </div>
 
                             <label class="col-sm-2 control-label">Giới tính</label>
                             <div class="col-sm-3">
-                                <select class="form-control">
+                                <select class="form-control" name ="sex">
                                     <option value="">-- Chọn --</option>
-                                    <option value="0">Nam</option>
-                                    <option value="1" selected>Nữ</option>
+                                    <option value="Nam"<?= (isset($profile['sex']) && $profile['sex'] === 'Nam') ? 'selected' : '' ?>>Nam</option>
+                                    <option value="Nữ" <?= (isset($profile['sex']) && $profile['sex'] === 'Nữ') ? 'selected' : '' ?> selected>Nữ</option>
                                 </select>
                             </div>
                         </div>
@@ -73,14 +78,14 @@ try {
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Quê quán </label>
                             <div class="col-sm-9">
-                                <input type="email" class="form-control" value="21000772@vnu.edu.vn">
+                                <input type="email" class="form-control" value="<?= htmlspecialchars($profile[''] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Email</label>
                             <div class="col-sm-9">
-                                <input type="email" class="form-control" value="ngantrang0316@gmail.com">
+                                <input type="email" class="form-control" name ="Email" value="<?= htmlspecialchars($profile['Email'] ?? '') ?>">
                             </div>
                         </div>
                     </div>
@@ -95,25 +100,25 @@ try {
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Học hàm</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="" disabled>
+                                <input type="text" class="form-control" name ="HocHam" value="<?= htmlspecialchars($profile['HocHam'] ?? '') ?>" disabled>
                             </div>
                         </div>
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Học vị</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="">
+                                <input type="text" class="form-control" name ="HocVi" value="<?= htmlspecialchars($profile['HocVi'] ?? '') ?>">
                             </div>
                         </div>
                         <div class="form-group" style="margin-bottom: auto">
                             <label class="col-sm-3 control-label">Bộ môn </label>
                             <div class="col-sm-9">
-                                <input type="email" class="form-control" value="21000772@vnu.edu.vn">
+                                <input type="email" class="form-control" name ="BoMon"value="<?= htmlspecialchars($profile['BoMon'] ?? '') ?>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Chức vụ</label>
                             <div class="col-sm-9">
-                                <input type="email" class="form-control" value="ngantrang0316@gmail.com">
+                                <input type="email" class="form-control" name ="ChucVu" value="<?= htmlspecialchars($profile['ChucVu'] ?? '') ?>">
                             </div>
                         </div>
                     </div>
@@ -123,5 +128,4 @@ try {
         </div>
 
     </div>
-</div>
 </div>

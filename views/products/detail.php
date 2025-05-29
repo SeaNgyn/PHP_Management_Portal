@@ -1,47 +1,52 @@
 <?php 
 include '../../configuration/database.php'; 
+// $monhocs = [];
+$limit = 10;
+if (isset($_GET['trang'])){
+    $page = $_GET['trang'];
+}else{
+    $page = '';
+}
 
+if($page ==''|| $page ==1){
+    $begin = 0;
+}else{
+    $begin = ($page*$limit)-$limit;
+}
+$totalRows = [];
+$monhocs = [];
 try {
-    
-    $sql = "SELECT * from giang_vien gv 
-        join giangvien_malophp gvmlhp on gv.id = gvmlhp.giang_vien_id 
-        join ma_lop_hp mlhp on mlhp.id = gvmlhp.id_ma_lop_hp 
-        join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 68
-      
-        -- where gvmlhp.giang_vien_id = 19
---     SELECT *
--- FROM ma_lop_hp ml
--- JOIN mon_hoc mh ON ml.id_mon_hoc = mh.id
--- JOIN giangvien_monhoc gvmh ON gvmh.id_mon_hoc = mh.id
--- JOIN giang_vien gv ON gvmh.giang_vien_id = gv.id;
-";
-    if ($connection === null) {
-        throw new Exception("Database connection is not established.");
-    }
-    $statement = $connection->prepare($sql);
-    $statement->execute();
-    $statement->setFetchMode(PDO::FETCH_ASSOC);
-    $monhocs = $statement->fetchAll();
+    $id_mon = $_GET['id'] ?? null;
 
-    // $sql = "SELECT * FROM giang_vien WHERE id = 29 ";
-//     $count = "SELECT 
-//     mlhp.ten_ma_lop_hp, 
-//     COUNT(gvmlhp.giang_vien_id) AS so_giang_vien
-// FROM 
-//     ma_lop_hp mlhp
-// JOIN 
-//     giangvien_malophp gvmlhp ON mlhp.id = gvmlhp.id_ma_lop_hp
-// GROUP BY 
-//     mlhp.ten_ma_lop_hp;";
-    $statement = $connection->prepare($sql);
-    $statement->execute();
-    $gv = $statement->fetch(PDO::FETCH_ASSOC);
-    $tenGiangVien = $gv['Name'] ?? 'Không tìm thấy';
-    //dem
-    // $statement = $connection->prepare($count);
-    // $statement->execute();
-    // $statement->setFetchMode(PDO::FETCH_ASSOC);
-    // $results = $statement->fetchAll();
+    if ($id_mon) {
+        $sql = "SELECT *
+        FROM mon_hoc mh
+        JOIN ma_lop_hp mlhp ON mh.id = mlhp.id_mon_hoc
+        LEFT JOIN giangvien_malophp gvmlhp ON mlhp.id = gvmlhp.id_ma_lop_hp
+        LEFT JOIN giang_vien gv ON gvmlhp.giang_vien_id = gv.id
+        WHERE mh.id = $id_mon ;";
+                // Lấy thông tin môn học
+                // $sqlMon = "SELECT * FROM mon_hoc WHERE id = ?";
+                $statement = $connection->prepare($sql);
+                    $statement->execute();
+                    $statement->setFetchMode(PDO::FETCH_ASSOC);
+                    $totalRows = $statement->fetchAll();
+
+        $sql = "SELECT *
+            FROM mon_hoc mh
+            JOIN ma_lop_hp mlhp ON mh.id = mlhp.id_mon_hoc
+            LEFT JOIN giangvien_malophp gvmlhp ON mlhp.id = gvmlhp.id_ma_lop_hp
+    LEFT JOIN giang_vien gv ON gvmlhp.giang_vien_id = gv.id
+WHERE mh.id = $id_mon  LIMIT $begin, $limit;";
+        // Lấy thông tin môn học
+        // $sqlMon = "SELECT * FROM mon_hoc WHERE id = ?";
+        $statement = $connection->prepare($sql);
+            $statement->execute();
+            $statement->setFetchMode(PDO::FETCH_ASSOC);
+            $monhocs = $statement->fetchAll();
+ 
+    }
+    
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();}
     
@@ -76,8 +81,8 @@ try {
                             <th>Số lượng sinh viên</th>
                             <th>Giảng đường</th>
                             <th>Ngôn ngữ giảng dạy</th>
-                            <th>Thời gian dạy</th>
-                            <!-- <th>Giảng viên</th> -->
+                            <!-- <th>Thời gian dạy</th> -->
+                            <th>Giảng viên</th>
                         </tr>
                     </thead>
                     <tbody style="color: #4f535a;">
@@ -88,7 +93,7 @@ try {
                         $tenHp = $monhoc['ten_mon'] ?? '';
                         $soTc = $monhoc['so_tin_chi'] ?? '';
                         $maLopHp = $monhoc['ten_ma_lop_hp'] ?? '';
-                        $phanBoTc = $monhoc['phan_bo_tin_chi'] ?? '';
+                         $phanBoTc = $monhoc['phan_bo_tin_chi'] ?? '';
                         $loaiLop = $monhoc['loai_lop'] ?? '';
                         $nganh = $monhoc['nganh'] ?? '';
                         $khoa = $monhoc['khoa'] ?? '';
@@ -97,10 +102,8 @@ try {
                         $thu = $monhoc['thu'] ?? '';
                         $tiet = $monhoc['tiet'] ?? '';
                         $ngonNguGiangDay = $monhoc['ngon_ngu_giang_day'] ?? '';
-                        // $giangVien = $monhoc['ten_gv'] ?? '';
+                        $giangVien = $monhoc['Name'] ?? '';
                         $giangDuong = $monhoc['giang_duong'] ?? '';
-
-
                         echo '<tr>';
                         echo "<td>$STT</td>";
                         echo "<td>$maHp</td>";
@@ -119,8 +122,8 @@ try {
                         echo "<td>$giangDuong</td>";
                         echo "<td>$ngonNguGiangDay</td>";
                         // echo "<td>" . calculateTimeToStudy($phanBoTc, $soLuongSv, $ngonNguGiangDay, $thu, $tiet, $loaiLop,$countGvMap[$maLopHp]) . "</td>";
-                        // echo "<td>$giangVien</td>";
-                        echo '</tr>';
+                        echo "<td>$giangVien</td>";
+                        // echo '</tr>';
                     }
                     //echo '<a href="index.php">Click here to back Home to upload file</a>';
                     ?>
@@ -130,7 +133,27 @@ try {
             </div>
 
         </div>
+        <!-- PHÂN TRANG -->
+        <div style="text-align: center;">
+            <?php
+            $trang = ceil(count($totalRows) / $limit);?>
+            <ul class="pagination">
+                <?php
+                for ($i = 1; $i <= $trang; $i++) {
+                ?>
+                <li><a href="detail.php?trang=<?php echo $i; ?>&id=<?php echo $id_mon; ?>"><?php echo $i; ?></a></li>
+                <!-- <li class="disabled"><a href="#">«</a></li>
+                <li class="active"><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">»</a></li> -->
 
+                <?php
+                }
+                ?>
+            </ul>
+
+        </div>
 
     </div>
 </div>
