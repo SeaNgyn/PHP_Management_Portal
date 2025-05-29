@@ -33,7 +33,7 @@ try {
     $statement->setFetchMode(PDO::FETCH_ASSOC);
     $monhocs = $statement->fetchAll();
 
-    $sql = "SELECT * FROM giang_vien WHERE id = 29 ";
+    $sql = "SELECT * FROM giang_vien";
     $count = "SELECT 
     mlhp.ten_ma_lop_hp, 
     COUNT(gvmlhp.giang_vien_id) AS so_giang_vien
