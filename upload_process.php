@@ -12,8 +12,6 @@ if ($_FILES['fileExcel']['error'] !== UPLOAD_ERR_OK) {
     die("File upload failed.");
 }
 
-$semester = $_POST['semester'] ?? null;
-
 $file = $_FILES['fileExcel']['tmp_name'];
 $spreadsheet = IOFactory::load($file);
 $sheetCount = $spreadsheet->getSheetCount();
@@ -55,26 +53,25 @@ function getCellValue($rowData, $indexResult, $key)
     }
     return $val;
 }
-function tachTenGV($chuoi)
-{
-    // 1. Loại bỏ phần trong dấu ngoặc như (PV), (GV), (HĐ),...
-    $chuoi = preg_replace('/\s*\(.*?\)\s*/', '', $chuoi);
+function tachTenGV($chuoi) {
+   // 1. Loại bỏ phần trong dấu ngoặc như (PV), (GV), (HĐ),...
+   $chuoi = preg_replace('/\s*\(.*?\)\s*/', '', $chuoi);
 
-    // 2. Chuẩn hóa chuỗi: loại bỏ khoảng trắng đầu-cuối, xuống dòng, dấu phẩy, chấm phẩy, dấu +
-    $chuoi = trim($chuoi);
-    $chuoi = preg_replace('/[\r\n,;+]+/', '|', $chuoi);
-    $chuoi = preg_replace('/\s*\|\s*/', '|', $chuoi); // xóa khoảng trắng quanh dấu phân cách
+   // 2. Chuẩn hóa chuỗi: loại bỏ khoảng trắng đầu-cuối, xuống dòng, dấu phẩy, chấm phẩy, dấu +
+   $chuoi = trim($chuoi);
+   $chuoi = preg_replace('/[\r\n,;+]+/', '|', $chuoi);
+   $chuoi = preg_replace('/\s*\|\s*/', '|', $chuoi); // xóa khoảng trắng quanh dấu phân cách
 
-    // 3. Tách thành mảng
-    $tenArr = explode('|', $chuoi);
+   // 3. Tách thành mảng
+   $tenArr = explode('|', $chuoi);
 
-    // 4. Loại bỏ khoảng trắng thừa và phần tử rỗng
-    $tenArr = array_filter(array_map('trim', $tenArr));
+   // 4. Loại bỏ khoảng trắng thừa và phần tử rỗng
+   $tenArr = array_filter(array_map('trim', $tenArr));
 
-    // 5. Loại bỏ tên trùng
-    $tenArr = array_unique($tenArr);
+   // 5. Loại bỏ tên trùng
+   $tenArr = array_unique($tenArr);
 
-    return array_values($tenArr); // Đảm bảo trả về mảng tuần tự
+   return array_values($tenArr); // Đảm bảo trả về mảng tuần tự
 
 }
 $inserted = 0;
@@ -201,39 +198,8 @@ for ($s = 0; $s < $sheetCount; $s++) {
                     $lastMonhocId = $connection->lastInsertId();
                 }
 
-                if (!empty($semester)) {
-                    switch ($semester) {
-                        case 1:
-                            $tenHocKy = 'Học kỳ 1';
-                            break;
-                        case 2:
-                            $tenHocKy = 'Học kỳ 2';
-                            break;
-                        case 3:
-                            $tenHocKy = 'Học kỳ Hè';
-                            break;
-                        default:
-                            $tenHocKy = 'Không xác định';
-                    }
-                    // Check trùng học kỳ theo tên và năm
-                    $stmtCheckHK = $connection->prepare("SELECT id FROM hoc_ky WHERE ten = ? AND nam_hoc = ?");
-                    $stmtCheckHK->execute([$tenHocKy, date("Y")]);
-                    $hocky = $stmtCheckHK->fetch(PDO::FETCH_ASSOC);
-
-                    if ($hocky) {
-                        $lastHocKyId = $hocky['id'];
-                    } else {
-                        $stmt5 = $connection->prepare("INSERT INTO hoc_ky (ten, nam_hoc) VALUES (?, ?)");
-                        $stmt5->execute([$tenHocKy, date("Y")]);
-
-                        // Lấy ID mới insert
-                        $lastHocKyId = $connection->lastInsertId();
-                    }
-                }
-
-                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp mlhp join hocky_malophp hkmlhp on mlhp.id = hkmlhp.malophp_id 
-                WHERE ten_ma_lop_hp = ? AND loai_lop = ? AND hkmlhp.hocky_id = ?;");
-                $stmtCheckMLHP->execute([$values[1], $values[3], $lastHocKyId]);  
+                $stmtCheckMLHP = $connection->prepare("SELECT id FROM ma_lop_hp WHERE ten_ma_lop_hp = ? AND loai_lop = ?");
+                $stmtCheckMLHP->execute([$values[1], $values[3]]);  // ma_lop_hp
 
                 $maLopHpCk = $stmtCheckMLHP->fetch(PDO::FETCH_ASSOC);
                 if ($maLopHpCk) {
@@ -247,19 +213,7 @@ for ($s = 0; $s < $sheetCount; $s++) {
 
                     $stmt->execute([...$values, $lastMonhocId]);
                     $lastMaLopHocPhanId = $connection->lastInsertId();
-
-                    // Check trùng học kỳ - môn học
-                    $stmtCheck = $connection->prepare("SELECT 1 FROM hocky_malophp WHERE hocky_id = ? AND malophp_id = ?");
-                    $stmtCheck->execute([$lastHocKyId, $lastMaLopHocPhanId]);
-
-                    if (!$stmtCheck->fetch(PDO::FETCH_ASSOC)) {
-                        $stmt6 = $connection->prepare("INSERT INTO hocky_malophp (hocky_id, malophp_id) VALUES (?, ?)");
-                        $stmt6->execute([$lastHocKyId, $lastMaLopHocPhanId]);
-                    }
                 }
-
-
-
 
                 if (!empty($values1[0])) {
 

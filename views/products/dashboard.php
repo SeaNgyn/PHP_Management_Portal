@@ -9,13 +9,12 @@
         <?php include '../layouts/dash.php'; ?>
         <!-- Phân trang -->
         <div style="text-align: center;">
-
             <?php
             // $sql_trang = mysqli_query($statement,"SELECT * FROM ma_lop_hp");
             $sql = "SELECT * from giang_vien gv 
              join giangvien_malophp gvmlhp on gv.id = gvmlhp.giang_vien_id 
             join ma_lop_hp mlhp on mlhp.id = gvmlhp.id_ma_lop_hp 
-            join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 68";
+            join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 70";
             $statement = $connection->prepare($sql);
             $statement->execute();
             $statement->setFetchMode(PDO::FETCH_ASSOC);
@@ -28,12 +27,6 @@
                 for ($i = 1; $i <= $trang; $i++) {
                 ?>
                 <li><a href="dashboard.php?trang=<?php echo $i ?>"><?php echo $i ?></a></li>
-                <!-- <li class="disabled"><a href="#">«</a></li>
-                <li class="active"><a href="#">1</a></li>
-                <li><a href="#">2</a></li>
-                <li><a href="#">3</a></li>
-                <li><a href="#">»</a></li> -->
-
                 <?php
                 }
                 ?>

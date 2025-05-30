@@ -1,5 +1,7 @@
 <?php
+header('Content-Type: text/html; charset=UTF-8');
 include '../../configuration/database.php';
+include '../layouts/calculate.php';
 if (isset($_GET['trang'])){
     $page = $_GET['trang'];
 }else{
@@ -16,14 +18,8 @@ try {
     $sql = "SELECT * from giang_vien gv 
         join giangvien_malophp gvmlhp on gv.id = gvmlhp.giang_vien_id 
         join ma_lop_hp mlhp on mlhp.id = gvmlhp.id_ma_lop_hp 
-        join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 68
+        join mon_hoc mh on mlhp.id_mon_hoc = mh.id where gvmlhp.giang_vien_id = 70;
         LIMIT $begin,10;
-        -- where gvmlhp.giang_vien_id = 19
---     SELECT *
--- FROM ma_lop_hp ml
--- JOIN mon_hoc mh ON ml.id_mon_hoc = mh.id
--- JOIN giangvien_monhoc gvmh ON gvmh.id_mon_hoc = mh.id
--- JOIN giang_vien gv ON gvmh.giang_vien_id = gv.id;
 ";
     if ($connection === null) {
         throw new Exception("Database connection is not established.");
@@ -33,7 +29,7 @@ try {
     $statement->setFetchMode(PDO::FETCH_ASSOC);
     $monhocs = $statement->fetchAll();
 
-    $sql = "SELECT * FROM giang_vien";
+    $sql = "SELECT * FROM giang_vien WHERE id = 70; ";
     $count = "SELECT 
     mlhp.ten_ma_lop_hp, 
     COUNT(gvmlhp.giang_vien_id) AS so_giang_vien
@@ -94,6 +90,8 @@ foreach($results as $row){
             </thead>
             <tbody style="color: #4f535a;">
                 <?php
+                // $totaltimeMap = [];
+
                     foreach ($monhocs as $monhoc) {
                         $STT = $monhoc['STT'] ?? '';
                         $maHp = $monhoc['ma_mon'] ?? '';
@@ -109,8 +107,10 @@ foreach($results as $row){
                         $thu = $monhoc['thu'] ?? '';
                         $tiet = $monhoc['tiet'] ?? '';
                         $ngonNguGiangDay = $monhoc['ngon_ngu_giang_day'] ?? '';
-                        // $giangVien = $monhoc['ten_gv'] ?? '';
+                        $giangVien = $monhoc['ten_gv'] ?? '';
                         $giangDuong = $monhoc['giang_duong'] ?? '';
+                        $gvId = $monhoc['giang_vien_id'];
+
 
 
                         echo '<tr>';
@@ -133,12 +133,30 @@ foreach($results as $row){
                         echo "<td>" . calculateTimeToStudy($phanBoTc, $soLuongSv, $ngonNguGiangDay, $thu, $tiet, $loaiLop,$countGvMap[$maLopHp]) . "</td>";
                         // echo "<td>$giangVien</td>";
                         echo '</tr>';
+                        $gioDay = calculateTimeToStudy($phanBoTc, $soLuongSv, $ngonNguGiangDay, $thu, $tiet, $loaiLop,$countGvMap[$maLopHp]) ;
+                        
+                        if(!isset($totaltimeMap[$gvId])){
+                            $totaltimeMap[$gvId] = [
+                            'Name'=> $giangVien,
+                            'tong_gio'=>0];
+                        }
+                        $totaltimeMap[$gvId]['tong_gio']+= $gioDay;
                     }
+
                     //echo '<a href="index.php">Click here to back Home to upload file</a>';
                     ?>
-                <!-- Các dòng dữ liệu khác có thể thêm vào đây -->
             </tbody>
+            <tfoot>
+                 <?php foreach ($totaltimeMap as $gv) {?>
+            <tr>    
+                <td colspan="7" class="tong-gio" >Tổng giờ dạy chuẩn : <?php echo $gv['tong_gio'];?> </td>
+            </tr>           
+            </tfoot>
+                <?php } ?>
         </table>
+
+
+
     </div>
 
 </div>
@@ -146,130 +164,113 @@ foreach($results as $row){
 <?php
 
    
-    function Ks($soLuongSv, $loaiLop,$maLopHp)
-    {
+    // function Ks($soLuongSv, $loaiLop,$maLopHp)
+    // {
     
-     //$soGv = $countGvMap[$maLopHp] ?? 1; // mặc định là 1 nếu không có trong map
-     $soGv=$maLopHp;
+    //  //$soGv = $countGvMap[$maLopHp] ?? 1; // mặc định là 1 nếu không có trong map
+    //  $soGv=$maLopHp;
      
-        switch ($loaiLop) {
-            case str_contains($loaiLop,'TH'):
-                $hs1 = ($soLuongSv < 15) ? 0.8 : (($soLuongSv < 20) ? 1.0 : 1.2);
-                $hs = $hs1/$soGv; 
-                return $hs;
-                break;
-            // case "'str_contains($loaiLop,'LT')'":
-                case 'LT':
-                // Xử lý theo lớp LT
-                $hs = ($soLuongSv <= 40) ? 1.0 : (($soLuongSv <= 60) ? 1.1 : (($soLuongSv <= 80) ? 1.2 : (($soLuongSv <= 100) ? 1.3 : (($soLuongSv <= 120) ? 1.4 : 1.5))));
-                return $hs;
-                break;
-            case str_contains($loaiLop,'BT'):
-                $hs = ($soLuongSv <= 40) ? 1.0 : (($soLuongSv <= 60) ? 1.1 : (($soLuongSv <= 80) ? 1.2 : (($soLuongSv <= 100) ? 1.3 : (($soLuongSv <= 120) ? 1.4 : 1.5))));
-                return $hs;
-                break;
-            default:
-                // Xử lý mặc định
-        }
-    }
-    function Kn($ngonNguGiangDay)
-    {
-        switch ($ngonNguGiangDay) {
-            case "Tiếng Việt":
-                return 1.0;
-                break;
-            default:
-                return 1.5;
-        }
-    }
-    function Kt($thu, $tiet)
-    {
-        $tietSplit = explode("-", $tiet);
-        if ($thu >= 2 && $thu <= 6 && array_filter($tietSplit, fn($x) => $x < 10)) {
-            return 1;
-        } else {
-            return 1.5;
-        }
-    }
+    //     switch ($loaiLop) {
+    //         case str_contains($loaiLop,'TH'):
+    //             $hs1 = ($soLuongSv < 15) ? 0.8 : (($soLuongSv < 20) ? 1.0 : 1.2);
+    //             $hs = $hs1/$soGv; 
+    //             return $hs;
+    //             break;
+    //         // case "'str_contains($loaiLop,'LT')'":
+    //             case 'LT':
+    //             // Xử lý theo lớp LT
+    //             $hs = ($soLuongSv <= 40) ? 1.0 : (($soLuongSv <= 60) ? 1.1 : (($soLuongSv <= 80) ? 1.2 : (($soLuongSv <= 100) ? 1.3 : (($soLuongSv <= 120) ? 1.4 : 1.5))));
+    //             return $hs;
+    //             break;
+    //         case str_contains($loaiLop,'BT'):
+    //             $hs = ($soLuongSv <= 40) ? 1.0 : (($soLuongSv <= 60) ? 1.1 : (($soLuongSv <= 80) ? 1.2 : (($soLuongSv <= 100) ? 1.3 : (($soLuongSv <= 120) ? 1.4 : 1.5))));
+    //             return $hs;
+    //             break;
+    //         default:
+    //             // Xử lý mặc định
+    //     }
+    // }
+    // function Kn($ngonNguGiangDay)
+    // {
+    //     switch ($ngonNguGiangDay) {
+    //         case "Tiếng Việt":
+    //             return 1.0;
+    //             break;
+    //         default:
+    //             return 1.5;
+    //     }
+    // }
+    // function Kt($thu, $tiet)
+    // {
+    //     $tietSplit = explode("-", $tiet);
+    //     if ($thu >= 2 && $thu <= 6 && array_filter($tietSplit, fn($x) => $x < 10)) {
+    //         return 1;
+    //     } else {
+    //         return 1.5;
+    //     }
+    // }
     
 
-    function calculateTimeToStudy($phanBoTc, $soLuongSv, $ngonNguGiangDay, $thu, $tiet, $loaiLop,$maLopHp)
-    {
-        // Gọi hàm tính hệ số
-        $ks = Ks($soLuongSv, $loaiLop,$maLopHp);
-        $kn = Kn($ngonNguGiangDay);
-        $kt = Kt($thu, $tiet);
+    // function calculateTimeToStudy($phanBoTc, $soLuongSv, $ngonNguGiangDay, $thu, $tiet, $loaiLop,$maLopHp) {
+    //     // Gọi hàm tính hệ số
+    //     $ks = Ks($soLuongSv, $loaiLop,$maLopHp);
+    //     $kn = Kn($ngonNguGiangDay);
+    //     $kt = Kt($thu, $tiet);
 
-        // $tinChiSplit = explode("/", $phanBoTc);
-        //explode() — là cách phổ biến và hiệu quả nhất để tách chuỗi theo ký tự phân cách.
-        // $count = count($tinChiSplit);
+    //     // $tinChiSplit = explode("/", $phanBoTc);
+    //     //explode() — là cách phổ biến và hiệu quả nhất để tách chuỗi theo ký tự phân cách.
+    //     // $count = count($tinChiSplit);
 
-        // Sử dụng biểu thức chính quy để tìm tất cả các chuỗi số
-        preg_match_all('/\d+/', $phanBoTc, $matches);
-        // $matches[0] chứa mảng các số tìm được
-        //doi mang 2 chieu thanh 1 chieu
-        $tinChiSplit = $matches[0];
-        $count = count($tinChiSplit);
+    //     // Sử dụng biểu thức chính quy để tìm tất cả các chuỗi số
+    //     preg_match_all('/\d+/', $phanBoTc, $matches);
+    //     // $matches[0] chứa mảng các số tìm được
+    //     //doi mang 2 chieu thanh 1 chieu
+    //     $tinChiSplit = $matches[0];
+    //     $count = count($tinChiSplit);
 
-       if($ngonNguGiangDay=="Tiếng Việt"){
-         $C = 1.5;
-       }else{
-        $C = 2;
-       }
-    $G1 = min($ks * $kn * $kt,$C);
-    $G2 = min(($ks * $kn * $kt)/2,$C);
-        if ($soLuongSv <= 15) {
-            switch ($count) {
-                case 4:
-                    $calTC = $tinChiSplit[1] + $tinChiSplit[$count - 2];
-                    return $calTC *  $G2;
-                    break;
-                case 2:
-                    $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 1];
-                    return $calTC *  $G2;
-                    break;
-                case 3:
-                    $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 2];
-                    return $calTC *  $G2;
-                    break;
-                default:
-                    return "no data";
-            }
-        } else {
-            switch ($count) {
-                case 4:
-                    $calTC = $tinChiSplit[1] + $tinChiSplit[$count - 2];
-                    return $calTC *  $G1;
-                    break;
-                case 2:
-                    $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 1];
-                    return $calTC *  $G1;
-                    break;
-                case 3:
-                    $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 2];
-                    return $calTC*  $G1;
-                    break;
-                default:
-                    return "no data";
-            }
-        }
-
-
-        // if ($count >= 2) {
-        //     $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 1];
-        //     return $calTC; // Có trên 1 phần tử
-        // } elseif ($count === 1) {
-        //     return $tinChiSplit[0]; // chỉ có 1 phần tử
-        // } else {
-        //     return 0; // không có dữ liệu hợp lệ
-        // }
+    //    if($ngonNguGiangDay=="Tiếng Việt"){
+    //      $C = 1.5;
+    //    }else{
+    //     $C = 2;
+    //    }
+    // $G1 = min($ks * $kn * $kt,$C);
+    // $G2 = min(($ks * $kn * $kt)/2,$C);
+    //     if ($soLuongSv <= 15) {
+    //         switch ($count) {
+    //             case 4:
+    //                 $calTC = $tinChiSplit[1] + $tinChiSplit[$count - 2];
+    //                 return $calTC *  $G2;
+    //                 break;
+    //             case 2:
+    //                 $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 1];
+    //                 return $calTC *  $G2;
+    //                 break;
+    //             case 3:
+    //                 $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 2];
+    //                 return $calTC *  $G2;
+    //                 break;
+    //             default:
+    //                 return "no data";
+    //         }
+    //     } else {
+    //         switch ($count) {
+    //             case 4:
+    //                 $calTC = $tinChiSplit[1] + $tinChiSplit[$count - 2];
+    //                 return $calTC *  $G1;
+    //                 break;
+    //             case 2:
+    //                 $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 1];
+    //                 return $calTC *  $G1;
+    //                 break;
+    //             case 3:
+    //                 $calTC = $tinChiSplit[0] + $tinChiSplit[$count - 2];
+    //                 return $calTC*  $G1;
+    //                 break;
+    //             default:
+    //                 return "no data";
+    //         }
+    //     }
 
 
-    }
+    // }
     ?>
-<!-- Biểu đồ -->
-<!-- <div class="row">
-    <div class="col-sm-12">
-        <canvas id="teachingChart" style="width: 100%; height: 400px; "></canvas>
-    </div>
-</div> -->
